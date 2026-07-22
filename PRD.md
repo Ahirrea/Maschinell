@@ -118,19 +118,19 @@ Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US),
 ### Phase 0 – Durchstich (Wochenendprojekt)
 > Ziel: Den Übersetzungskern validieren, bevor irgendetwas anderes gebaut wird.
 
-- [ ] Einfache Web-App: Textfeld → Übersetzen-Button → Side-by-Side-Ausgabe
-- [ ] LLM-Anbindung mit erstem Prompt (DE-Ziel-Glossar, Strukturregeln)
+- [x] Einfache Web-App: Textfeld → Übersetzen-Button → Side-by-Side-Ausgabe
+- [x] LLM-Anbindung mit erstem Prompt (DE-Ziel-Glossar, Strukturregeln)
 - [ ] Test mit 2–3 echten Anleitungen; Fehlerklassen dokumentieren
 
 ### Phase 1 – MVP „Vertrauenswürdig übersetzen“
 > Ziel: Übersetzungen, denen man beim Arbeiten blind folgen kann.
 
-- [ ] Erkennungsschritt (Sprache, Technik, US/UK) mit Bestätigungsdialog
-- [ ] Kuratierte Glossare EN-US → DE und EN-UK → DE
-- [ ] Striktes deutsches Ziel-Glossar + automatische Legende
-- [ ] Maschenzahl- und Strukturvalidierung mit Markierungen
-- [ ] Einheitenkonvertierung (Nadeln, Maße, Garngewichte)
-- [ ] Export/Copy als Markdown
+- [x] Erkennungsschritt (Sprache, Technik, US/UK) mit Bestätigungsdialog
+- [x] Kuratierte Glossare EN-US → DE und EN-UK → DE
+- [x] Striktes deutsches Ziel-Glossar + automatische Legende
+- [x] Maschenzahl- und Strukturvalidierung mit Markierungen
+- [x] Einheitenkonvertierung (Nadeln, Maße, Garngewichte)
+- [x] Export/Copy als Markdown
 
 ### Phase 2 – Quellen erweitern
 > Ziel: „Egal woher die Anleitung kommt.“

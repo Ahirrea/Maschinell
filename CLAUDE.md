@@ -46,4 +46,14 @@ Kein OCR/Foto (Phase 2), keine Charts/Symbol-Diagramme (Phase 4), kein Multi-Use
 
 ## Status
 
-Phase 0 (Durchstich/Prototyp). Tech-Stack steht (LLM, Framework, Kern-Architektur – siehe PRD Abschnitt 10). Nächster Schritt: Durchstich-Skelett (Textfeld → Übersetzen → Side-by-Side).
+Phase 1 (MVP „Vertrauenswürdig übersetzen“). Die volle Pipeline steht: **zweistufiger Ablauf** mit Erkennung (`/api/detect`) → Bestätigungsdialog (Sprache/Technik/US-UK/Größe) → Übersetzung (`/api/translate`) mit bestätigter Erkennung. Kuratierte Quell-Glossare (EN-US/EN-UK) und hartes DE-Ziel-Glossar; deterministische Maschenzahl- **und** Strukturvalidierung; Einheitenkonvertierung (Nadeln, Zoll, Yards, Garngewichte) als einzige erlaubte Zahlentransformation nach der Validierung; Markdown-Export. Nächster Schritt: Test mit echten Anleitungen, danach Phase 2 (Quellen: PDF/Web/OCR).
+
+### Struktur (Phase 1)
+- `src/lib/glossary/data.ts` – Glossar-Rohdaten (eine Quelle für Ziel- und Quell-Glossar).
+- `src/lib/glossary/de-ziel.ts` – hartes DE-Ziel-Glossar als gecachter Prompt-Präfix.
+- `src/lib/glossary/quell.ts` – EN-US/EN-UK-Quell-Glossar je nach bestätigter Terminologie.
+- `src/lib/server/detect.ts` – Erkennungsstufe (LLM).
+- `src/lib/server/translate.ts` – Übersetzung mit bestätigter Erkennung + Quell-Glossar.
+- `src/lib/server/units.ts` – deterministische Einheitenkonvertierung (Whitelist).
+- `src/lib/server/validate.ts` – Maschenzahl- + Strukturprüfung, wendet Einheiten NACH der Prüfung an.
+- `src/lib/markdown.ts` – Markdown-Export (reine Funktion, clientseitig genutzt).

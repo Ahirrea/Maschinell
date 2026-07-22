@@ -21,7 +21,7 @@ Eingabe → Erkennung (Sprache, Technik, US/UK) → LLM-Übersetzung mit Glossar
 
 ## Status & Roadmap
 
-🚧 In Entwicklung – aktuell Phase 0 (Prototyp).
+🚧 In Entwicklung – aktuell Phase 1 (MVP „Vertrauenswürdig übersetzen“): Erkennung mit Bestätigungsdialog, kuratierte EN-US/EN-UK-Glossare, Maschenzahl- und Strukturvalidierung, Einheitenkonvertierung und Markdown-Export.
 
 | Phase | Ziel |
 |---|---|
