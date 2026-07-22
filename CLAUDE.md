@@ -42,8 +42,8 @@ Kein OCR/Foto (Phase 2), keine Charts/Symbol-Diagramme (Phase 4), kein Multi-Use
 - **Glossar via Prompt Caching:** DE-Ziel-Glossar + Quell-Glossare als stabiler, gecachter Prompt-Präfix (~10 % Kosten bei Folgeübersetzungen).
 - **Structured Outputs** für die Modellausgabe (Reihen mit Nummer + Maschenzahlen), damit die deterministische Validierung einfach aufsetzt.
 - **Bibliothek (Phase 3):** IndexedDB im Browser + JSON-Export/Import; hinter Storage-Interface kapseln.
-- **Web-Framework:** noch offen (vor Phase 0 zu entscheiden).
+- **Web-Framework:** **SvelteKit** (TypeScript, Svelte 5 mit Runes). Der Claude-Aufruf, Glossar-Caching und die Validierung laufen serverseitig in `+server.ts` / `+page.server.ts`; der `ANTHROPIC_API_KEY` kommt aus `$env/static/private` und erreicht den Browser nie.
 
 ## Status
 
-Phase 0 (Durchstich/Prototyp). LLM-Wahl und Kern-Architektur stehen (siehe PRD Abschnitt 10). Offen: Web-Framework. Diese Datei aktualisieren, sobald das Framework feststeht.
+Phase 0 (Durchstich/Prototyp). Tech-Stack steht (LLM, Framework, Kern-Architektur – siehe PRD Abschnitt 10). Nächster Schritt: Durchstich-Skelett (Textfeld → Übersetzen → Side-by-Side).

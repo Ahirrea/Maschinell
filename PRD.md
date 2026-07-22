@@ -174,9 +174,11 @@ Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US),
 - **Größenvarianten `(4, 6, 8)`:** Die Maschenzahl-Invariante behandelt Klammer-Tupel als **geordnete Sequenz, die exakt erhalten bleibt** (gleiche Anzahl, Reihenfolge, Werte – nicht summieren, nicht flatten). Der Validator extrahiert Zahlen pro Reihe unter Erhalt der Klammer-Gruppierung und prüft Sequenz-Gleichheit. Einzige erlaubte Zahlentransformation ist die Einheitenkonvertierung (per Whitelist), die den Originalwert in Klammern führt. **Ergänzung:** Bei mehreren erkannten Größen gibt es vor der Übersetzung eine Größen-Auswahl; die gewählte Größe wird im Ergebnis hervorgehoben (siehe 5.1/5.4, F2b).
 - **Speicherung der Bibliothek (Phase 3):** **IndexedDB** im Browser (kein Backend, keine Accounts – Daten bleiben lokal, passt zum Datenschutz-/Copyright-Profil), plus Export/Import als JSON für Backup/Umzug. Für Phase 0/MVP keine Persistenz nötig; Bibliothek hinter einem Storage-Interface kapseln, damit IndexedDB → Datei/Backend austauschbar bleibt.
 
+- **Web-Framework:** **SvelteKit** (TypeScript, Svelte 5). Full-Stack-Framework mit eingebauten Server-Endpunkten – nötig, weil der `ANTHROPIC_API_KEY` nicht in den Browser darf. Claude-Aufruf, Glossar-Caching und Validierung laufen serverseitig (`+server.ts` / `+page.server.ts`), der Key kommt aus `$env/static/private`.
+
 ### Weiterhin offen
 
-- **Web-Framework** für die Oberfläche (Phase 0). Beeinflusst den Übersetzungskern kaum, muss aber vor dem Durchstich feststehen.
+- Derzeit keine. Nächster Schritt ist der Phase-0-Durchstich (Textfeld → Übersetzen → Side-by-Side).
 
 ## 11. Anhang: Glossar-Auszug (Beispiel)
 
