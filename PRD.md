@@ -63,7 +63,9 @@ Vor der Übersetzung klassifiziert die App:
 - **Technik**: Häkeln oder Stricken
 - **Bei Englisch zwingend: US- oder UK-Terminologie** (Heuristik: *single crochet* existiert nur in US-Terminologie; UK-Marker: *treble* ohne *double treble*-Kontext etc.)
 
-Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US), Häkelanleitung“) und ist korrigierbar. Ein Klick mehr, aber er verhindert die schlimmste Fehlerklasse.
+Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US), Häkelanleitung”) und ist korrigierbar. Ein Klick mehr, aber er verhindert die schlimmste Fehlerklasse.
+
+**Größen-Auswahl:** Werden mehrere Größen erkannt (z. B. S/M/L als Klammer-Tupel `(4, 6, 8)`), kann im selben Bestätigungsschritt eine Größe gewählt werden. Die gewählte Größe wird im Ergebnis-Text hervorgehoben, sodass die relevanten Zahlen sofort sichtbar sind. Die übrigen Größen bleiben erhalten (siehe 5.3, Zahlen-Validierung), werden aber optisch zurückgenommen.
 
 ### 5.2 Übersetzung (Hybrid: LLM + Glossar-Leitplanken)
 
@@ -84,6 +86,7 @@ Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US),
 
 - Side-by-Side-Ansicht (Original | Deutsch), Zeilen synchronisiert.
 - Deutsche Abkürzungslegende automatisch vorangestellt.
+- Bei mehreren Größen: die in 5.1 gewählte Größe im Text hervorgehoben, die übrigen Werte zurückgenommen (aber erhalten).
 - **Einheitenkonvertierung**: Nadelstärken US → mm, inches → cm, Garngewichte mit deutscher Entsprechung (worsted ≈ Aran/dickes DK), Originalwert in Klammern.
 - Export als Markdown/Text (Copy-Button reicht im MVP).
 
@@ -93,6 +96,7 @@ Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US),
 |---|---|---|
 | F1 | Text-Eingabe per Copy & Paste (Textfeld) | Must |
 | F2 | Erkennung Sprache / Technik / US-UK mit Bestätigungsdialog | Must |
+| F2b | Größen-Auswahl bei Mehrgrößen-Anleitungen (vor Übersetzung), gewählte Größe im Ergebnis hervorgehoben | Should |
 | F3 | Übersetzung mit Quell-Glossar (EN-US, EN-UK) und striktem DE-Ziel-Glossar | Must |
 | F4 | Strukturerhalt (Reihen, Klammern, Wiederholungen, Maschenzahlen) | Must |
 | F5 | Maschenzahl-Validierung mit Markierung von Abweichungen | Must |
@@ -159,12 +163,20 @@ Das Ergebnis wird **vor** der Übersetzung angezeigt („Erkannt: Englisch (US),
 | OCR-Fehler bei Abkürzungen (Phase 2) | Falsche Maschen aus einem Buchstaben Unterschied | OCR-Nachkorrektur gegen Glossar, Konfidenz-Markierung |
 | Copyright beim Teilen | Rechtliches Risiko | MVP strikt privat; Teilen ist explizites Nicht-Ziel |
 
-## 10. Offene Fragen
+## 10. Entscheidungen & offene Fragen
 
-- Welches LLM/welcher Anbieter für den Übersetzungskern? (Kriterien: Instruktionstreue bei Strukturregeln, Kosten pro Anleitung)
-- Zeilenweise vs. abschnittsweise Übersetzung – was liefert die stabilere Struktur-Synchronisation für die Side-by-Side-Ansicht?
-- Wie werden Größenvarianten behandelt (Anleitungen mit S/M/L-Klammern wie `(4, 6, 8)`), damit die Zahlen-Validierung nicht fehlschlägt?
-- Lokale Speicherung der Bibliothek (Phase 3): Datei-basiert oder Browser-Storage oder Backend?
+### Getroffene Entscheidungen (Stand Juli 2026)
+
+- **LLM/Anbieter:** Claude. In **Phase 0** wird mit **Opus 4.8** (`claude-opus-4-8`) entwickelt, um die Übersetzungsqualität zu validieren, bevor auf Kosten optimiert wird. Danach Prüfung, ob **Sonnet 5** (`claude-sonnet-5`) die Qualität bei etwa halben Kosten hält. Haiku ist für die US/UK-Nuancen zu schwach. Grobe Kosten pro Anleitung: Opus 4.8 ≈ 6 ct, Sonnet 5 ≈ 3 ct.
+  - **Prompt Caching für das Glossar:** Das harte DE-Ziel-Glossar + die Quell-Glossare (EN-US, EN-UK) sind ein großer, stabiler Prompt-Präfix und werden gecacht → der Glossar-Anteil kostet bei Folgeübersetzungen nur ~10 %.
+  - **Structured Outputs:** Das Modell gibt die Übersetzung strukturiert zurück (Reihen mit Nummer + Maschenzahlen), damit die deterministische Validierung (5.3) einfach darauf aufsetzen kann.
+- **Übersetzungsgranularität:** **pro Struktureinheit (Reihe/Runde)**, nicht rein zeilenweise und nicht als Fließtext-Block. Segmentierung (Original → Reihen mit Index) → Übersetzung je Reihe mit Glossar-Kontext → Zusammensetzen über den Index. Damit ist die Side-by-Side-Synchronisation gratis und die Zahlenprüfung läuft pro Reihe.
+- **Größenvarianten `(4, 6, 8)`:** Die Maschenzahl-Invariante behandelt Klammer-Tupel als **geordnete Sequenz, die exakt erhalten bleibt** (gleiche Anzahl, Reihenfolge, Werte – nicht summieren, nicht flatten). Der Validator extrahiert Zahlen pro Reihe unter Erhalt der Klammer-Gruppierung und prüft Sequenz-Gleichheit. Einzige erlaubte Zahlentransformation ist die Einheitenkonvertierung (per Whitelist), die den Originalwert in Klammern führt. **Ergänzung:** Bei mehreren erkannten Größen gibt es vor der Übersetzung eine Größen-Auswahl; die gewählte Größe wird im Ergebnis hervorgehoben (siehe 5.1/5.4, F2b).
+- **Speicherung der Bibliothek (Phase 3):** **IndexedDB** im Browser (kein Backend, keine Accounts – Daten bleiben lokal, passt zum Datenschutz-/Copyright-Profil), plus Export/Import als JSON für Backup/Umzug. Für Phase 0/MVP keine Persistenz nötig; Bibliothek hinter einem Storage-Interface kapseln, damit IndexedDB → Datei/Backend austauschbar bleibt.
+
+### Weiterhin offen
+
+- **Web-Framework** für die Oberfläche (Phase 0). Beeinflusst den Übersetzungskern kaum, muss aber vor dem Durchstich feststehen.
 
 ## 11. Anhang: Glossar-Auszug (Beispiel)
 

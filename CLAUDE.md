@@ -22,8 +22,8 @@ Eingabe → 1. Erkennung → 2. Übersetzung → 3. Validierung → 4. Ausgabe
 ```
 
 1. **Erkennung** – Quellsprache, Technik (Häkeln/Stricken) und bei Englisch zwingend US- vs. UK-Terminologie; Ergebnis wird vor der Übersetzung bestätigt.
-2. **Übersetzung** – LLM + Glossar-Leitplanken: kuratiertes Quell-Glossar (EN-US, EN-UK) + **hartes deutsches Ziel-Glossar**. Struktur (Reihennummern, Klammern, Wiederholungen, Maschenzahlen) darf nie verändert werden.
-3. **Validierung** – deterministisch, sprachunabhängig: Maschenzahl-Invariante und Strukturprüfung; Abweichungen werden markiert, nicht stillschweigend korrigiert.
+2. **Übersetzung** – LLM + Glossar-Leitplanken: kuratiertes Quell-Glossar (EN-US, EN-UK) + **hartes deutsches Ziel-Glossar**. Struktur (Reihennummern, Klammern, Wiederholungen, Maschenzahlen) darf nie verändert werden. Granularität: **pro Struktureinheit (Reihe/Runde)** mit Reihen-Index als Schlüssel für die Side-by-Side-Synchronisation.
+3. **Validierung** – deterministisch, sprachunabhängig: Maschenzahl-Invariante und Strukturprüfung; Abweichungen werden markiert, nicht stillschweigend korrigiert. Klammer-Tupel für Größen (`(4, 6, 8)`) werden als geordnete Sequenz exakt erhalten (nicht summieren/flatten). Bei Mehrgrößen-Anleitungen: Größen-Auswahl vor der Übersetzung, gewählte Größe im Ergebnis hervorgehoben.
 4. **Ausgabe** – Side-by-Side (Original | Deutsch), automatische DE-Legende, Einheitenkonvertierung (Nadeln US→mm, inch→cm, Garngewichte).
 
 ## Nicht-Ziele (MVP)
@@ -36,6 +36,14 @@ Kein OCR/Foto (Phase 2), keine Charts/Symbol-Diagramme (Phase 4), kein Multi-Use
 - **US/UK-Fehlklassifikation ist die schlimmste Fehlerklasse.** Der Bestätigungsschritt vor der Übersetzung ist Pflicht.
 - **Das Glossar ist die zentrale Wahrheitsquelle** für Prompt *und* Validierung. Geplant als eigener Ordner `glossary/` (siehe PRD Anhang 11).
 
+## Tech-Stack
+
+- **LLM:** Claude. Phase 0 mit **Opus 4.8** (`claude-opus-4-8`); später Prüfung auf **Sonnet 5** (`claude-sonnet-5`) zur Kostensenkung. Immer die aktuellen Claude-Modelle verwenden.
+- **Glossar via Prompt Caching:** DE-Ziel-Glossar + Quell-Glossare als stabiler, gecachter Prompt-Präfix (~10 % Kosten bei Folgeübersetzungen).
+- **Structured Outputs** für die Modellausgabe (Reihen mit Nummer + Maschenzahlen), damit die deterministische Validierung einfach aufsetzt.
+- **Bibliothek (Phase 3):** IndexedDB im Browser + JSON-Export/Import; hinter Storage-Interface kapseln.
+- **Web-Framework:** noch offen (vor Phase 0 zu entscheiden).
+
 ## Status
 
-Phase 0 (Durchstich/Prototyp). Tech-Stack (LLM-Anbieter, Web-Framework) ist noch offen – siehe offene Fragen im PRD Abschnitt 10. Diese Datei aktualisieren, sobald der Stack feststeht.
+Phase 0 (Durchstich/Prototyp). LLM-Wahl und Kern-Architektur stehen (siehe PRD Abschnitt 10). Offen: Web-Framework. Diese Datei aktualisieren, sobald das Framework feststeht.
