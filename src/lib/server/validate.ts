@@ -2,13 +2,19 @@
 // nicht dem LLM überlassen. "Maschenzahlen sind heilig" – Zahlen aus dem
 // Original dürfen sich beim Übersetzen nie ändern.
 //
-// Phase 0 hält das bewusst schlicht: pro Reihe werden die Zahlenfolgen aus
-// Original und deutscher Übersetzung extrahiert und auf exakte Gleichheit
-// geprüft. Klammer-Tupel für Größen – z. B. "(4, 6, 8)" – werden als eine
-// geordnete Gruppe erhalten (nicht flatten), sodass Reihenfolge und Werte
-// exakt verglichen werden.
+// Zwei Ebenen:
+//   1. Maschenzahl-Invariante pro Reihe: Zahlenfolgen aus Original und
+//      deutscher Übersetzung müssen exakt übereinstimmen. Klammer-Tupel für
+//      Größen – z. B. "(4, 6, 8)" – bleiben als eine geordnete Gruppe erhalten
+//      (nicht flatten), sodass Reihenfolge und Werte exakt verglichen werden.
+//   2. Strukturprüfung über die gesamte Anleitung: Klammern paarig,
+//      Reihennummern lückenlos.
+//
+// Abweichungen brechen NICHT ab, sondern werden sichtbar markiert.
 
-import type { Reihe, GepruefteReihe, ReihenPruefung } from '$lib/types';
+import type { Reihe, GepruefteReihe, ReihenPruefung, StrukturPruefung } from '$lib/types';
+import { konvertiereEinheiten } from './units';
+import type { Einheitenkonvertierung } from '$lib/types';
 
 /**
  * Extrahiert Zahlenfolgen aus einem Text unter Erhalt der Klammer-Gruppierung.
@@ -43,15 +49,89 @@ export function pruefeReihe(reihe: Reihe): ReihenPruefung {
 }
 
 /**
- * Reichert alle Reihen um ihr Prüfergebnis an und zählt die Abweichungen.
+ * Deterministische Strukturprüfung über alle Reihen: Klammern müssen paarig
+ * sein und erkannte Reihennummern lückenlos aufsteigen. Best-effort – findet
+ * sie keine Reihennummern, gilt die Kontinuität als erfüllt.
+ */
+export function pruefeStruktur(reihen: Reihe[]): StrukturPruefung {
+	const probleme: string[] = [];
+
+	// Klammern paarig (über Original UND Deutsch, jede Reihe für sich).
+	let klammernPaarig = true;
+	for (const r of reihen) {
+		for (const [feld, text] of [
+			['Original', r.original],
+			['Deutsch', r.deutsch]
+		] as const) {
+			const auf = (text.match(/\(/g) ?? []).length;
+			const zu = (text.match(/\)/g) ?? []).length;
+			if (auf !== zu) {
+				klammernPaarig = false;
+				probleme.push(`Reihe ${r.index} (${feld}): unpaarige Klammern (${auf}× "(", ${zu}× ")").`);
+			}
+		}
+	}
+
+	// Reihennummern aus dem Original am Zeilenanfang lesen (Row/Rnd/Reihe/Runde …).
+	const marker = /^\s*(?:row|rnd|round|r|reihe|runde|rd)\.?\s*(\d+)/i;
+	const nummern: number[] = [];
+	for (const r of reihen) {
+		const m = r.original.match(marker);
+		if (m) nummern.push(parseInt(m[1], 10));
+	}
+
+	let reihenLueckenlos = true;
+	for (let i = 1; i < nummern.length; i++) {
+		const vorher = nummern[i - 1];
+		const jetzt = nummern[i];
+		// Erlaubt: gleiche Nummer (Sub-Reihe) oder +1. Alles andere = Lücke/Sprung.
+		if (jetzt !== vorher && jetzt !== vorher + 1) {
+			reihenLueckenlos = false;
+			probleme.push(`Reihennummern springen von ${vorher} auf ${jetzt}.`);
+		}
+	}
+
+	return { klammernPaarig, reihenLueckenlos, probleme };
+}
+
+/**
+ * Reichert alle Reihen um Prüfergebnis und einheitenkonvertierte Anzeige an,
+ * zählt die Abweichungen und prüft zusätzlich die Gesamtstruktur.
  * Abweichungen brechen NICHT ab, sondern werden sichtbar markiert.
  */
-export function validiere(reihen: Reihe[]): { reihen: GepruefteReihe[]; abweichungen: number } {
+export function validiere(reihen: Reihe[]): {
+	reihen: GepruefteReihe[];
+	abweichungen: number;
+	struktur: StrukturPruefung;
+	konvertierungen: Einheitenkonvertierung[];
+} {
 	let abweichungen = 0;
-	const geprueft = reihen.map((r) => {
+	const alleKonvertierungen: Einheitenkonvertierung[] = [];
+
+	const geprueft: GepruefteReihe[] = reihen.map((r) => {
 		const pruefung = pruefeReihe(r);
 		if (!pruefung.ok) abweichungen++;
-		return { ...r, pruefung };
+
+		// Einheitenkonvertierung NACH der Zahlenprüfung – die validierte Fassung
+		// `deutsch` bleibt unberührt; nur die Anzeige bekommt die Umrechnungen.
+		const { text, konvertierungen } = konvertiereEinheiten(r.deutsch);
+		for (const k of konvertierungen) {
+			if (
+				!alleKonvertierungen.some(
+					(x) => x.original === k.original && x.konvertiert === k.konvertiert
+				)
+			) {
+				alleKonvertierungen.push(k);
+			}
+		}
+
+		return { ...r, pruefung, deutschAnzeige: text };
 	});
-	return { reihen: geprueft, abweichungen };
+
+	return {
+		reihen: geprueft,
+		abweichungen,
+		struktur: pruefeStruktur(reihen),
+		konvertierungen: alleKonvertierungen
+	};
 }
