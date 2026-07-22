@@ -57,3 +57,5 @@ Phase 1 (MVP „Vertrauenswürdig übersetzen“). Die volle Pipeline steht: **z
 - `src/lib/server/units.ts` – deterministische Einheitenkonvertierung (Whitelist).
 - `src/lib/server/validate.ts` – Maschenzahl- + Strukturprüfung, wendet Einheiten NACH der Prüfung an.
 - `src/lib/markdown.ts` – Markdown-Export (reine Funktion, clientseitig genutzt).
+- `src/routes/glossar/+page.svelte` – clientseitige Glossar-Referenz (Nachschlagen, ohne API).
+- Tests (Vitest, `npm test`): `units`, `validate`, `glossary/data`.

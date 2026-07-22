@@ -158,7 +158,10 @@
 
 <main>
 	<header>
-		<h1>🧶 Maschinell</h1>
+		<div class="kopfzeile">
+			<h1>🧶 Maschinell</h1>
+			<a class="glossar-link" href="/glossar">Glossar</a>
+		</div>
 		<p class="claim">Häkel- und Strickanleitungen aus jeder Sprache in einheitliches Deutsch.</p>
 	</header>
 
@@ -381,6 +384,25 @@
 		max-width: 960px;
 		margin: 0 auto;
 		padding: 2rem 1.25rem 4rem;
+	}
+
+	.kopfzeile {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.glossar-link {
+		color: #b5533a;
+		text-decoration: none;
+		font-weight: 600;
+		font-size: 0.95rem;
+		white-space: nowrap;
+	}
+
+	.glossar-link:hover {
+		text-decoration: underline;
 	}
 
 	header h1 {
