@@ -1,0 +1,23 @@
+# Umgebung / Secrets
+.env
+.env.*
+!.env.example
+
+# Abhängigkeiten
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build / Ausgabe
+dist/
+build/
+.cache/
+
+# Betriebssystem / Editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
