@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Erkennung, Technik, Terminologie, UebersetzungsErgebnis } from '$lib/types';
 	import { alsMarkdown } from '$lib/markdown';
+	import { DEMO_ERGEBNIS } from '$lib/demo';
 
 	// Pipeline als Wizard: Eingabe → Erkennung bestätigen → Ergebnis.
 	type Schritt = 'eingabe' | 'bestaetigung' | 'ergebnis';
@@ -16,6 +17,8 @@
 
 	let ergebnis = $state<UebersetzungsErgebnis | null>(null);
 	let kopiert = $state(false);
+	// Demo-/Vorschaumodus: fest verdrahtetes Ergebnis ohne API-Aufruf.
+	let demo = $state(false);
 
 	const TECHNIKEN: Technik[] = ['Häkeln', 'Stricken', 'Unbekannt'];
 	const TERMINOLOGIEN: Terminologie[] = ['US', 'UK', 'unklar', 'n/a'];
@@ -87,6 +90,21 @@
 		groesseIndex = null;
 		ergebnis = null;
 		fehler = null;
+		demo = false;
+	}
+
+	/**
+	 * Demo-/Vorschaumodus: zeigt ein fest verdrahtetes Beispiel-Ergebnis ohne
+	 * API-Aufruf. So lässt sich die komplette Ausgabe (Größen-Hervorhebung,
+	 * Einheitenanzeige, Struktur-Warnungen, Legende, Markdown) durchklicken und
+	 * visuell verifizieren.
+	 */
+	function demoZeigen() {
+		if (laedt) return;
+		fehler = null;
+		demo = true;
+		ergebnis = DEMO_ERGEBNIS;
+		schritt = 'ergebnis';
 	}
 
 	// ── Ausgabe-Helfer ────────────────────────────────────────────────────────
@@ -191,9 +209,17 @@
 				placeholder="Row 1: sc in 2nd ch from hook, sc across (12)&#10;Row 2: ch 1, turn, sc across (12)&#10;..."
 				disabled={laedt}
 			></textarea>
-			<button class="primaer" onclick={analysieren} disabled={laedt || !eingabe.trim()}>
-				{laedt ? 'Analysiere …' : 'Analysieren'}
-			</button>
+			<div class="eingabe-aktionen">
+				<button class="primaer" onclick={analysieren} disabled={laedt || !eingabe.trim()}>
+					{laedt ? 'Analysiere …' : 'Analysieren'}
+				</button>
+				<button class="sekundaer" onclick={demoZeigen} disabled={laedt}>
+					Demo ansehen
+				</button>
+			</div>
+			<p class="mini">
+				Kein Text zur Hand? „Demo ansehen" zeigt ein Beispiel-Ergebnis – ganz ohne API.
+			</p>
 		</section>
 	{/if}
 
@@ -271,6 +297,13 @@
 	<!-- Schritt 3: Ergebnis -->
 	{#if schritt === 'ergebnis' && ergebnis}
 		<section class="ergebnis">
+			{#if demo}
+				<p class="demo-banner" role="note">
+					🔍 <strong>Demo/Vorschau</strong> – ein fest verdrahtetes Beispiel-Ergebnis ohne
+					API-Aufruf. Es zeigt bewusst eine Maschenzahl-Abweichung und eine Struktur-Warnung, damit
+					sich alle Ausgabe-Zustände prüfen lassen.
+				</p>
+			{/if}
 			<div class="meta">
 				<span
 					>Erkannt: <strong>{ergebnis.erkennung.sprache}</strong>
@@ -490,8 +523,21 @@
 		cursor: not-allowed;
 	}
 
-	.eingabe button {
+	.eingabe-aktionen {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
 		align-self: flex-start;
+	}
+
+	.demo-banner {
+		margin: 0 0 1rem;
+		padding: 0.65rem 0.9rem;
+		background: #eef4fb;
+		border: 1px solid #c3d6ea;
+		border-radius: 8px;
+		color: #33506e;
+		font-size: 0.9rem;
 	}
 
 	.aktionen {
